@@ -31,7 +31,7 @@ const postSchema = mongoose.Schema(
       ref: "User",
     },
     images: {
-      type: Buffer,
+      type: [String],
       required: false,
     },
   },
