@@ -18,7 +18,8 @@ const createPost = asyncHandler(async (req, res) => {
     tweetTime: tweetTime,
     // likedBy: null,
     likes: 0,
-    images: images && images,
+    images
+    // images: images && images,
   });
   if (post) {
     res.status(201).json({ message: "success", data: post });
