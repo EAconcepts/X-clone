@@ -6,7 +6,6 @@ const cloudinary = require("../utils/cloudinary");
 // POST /api/post/create-post
 // Private
 const createPost = asyncHandler(async (req, res) => {
-  
   const { content, tweetTime, images } = req.body;
   console.log(images);
   if (!content) {
@@ -18,7 +17,7 @@ const createPost = asyncHandler(async (req, res) => {
     tweetTime: tweetTime,
     // likedBy: null,
     likes: 0,
-    images
+    images,
     // images: images && images,
   });
   if (post) {
@@ -71,7 +70,7 @@ const getPost = asyncHandler(async (req, res) => {
 // POST /api/post/
 // Private
 const getAllPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find().populate("user");
+  const posts = await Post.find().sort({ _id: -1 }).populate("user");
   if (posts) {
     res.status(200).json({
       message: "success",
