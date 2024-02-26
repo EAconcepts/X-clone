@@ -17,5 +17,7 @@ const port = process.env.PORT || 7000;
 
 app.use("/api/auth", require("./routes/userRoutes"));
 app.use("/api/post", require("./routes/postRoutes"));
+app.use("/api/comment", require("./routes/commentRoutes"));
+app.use('/api/notification', require('./routes/notificationRoutes'))
 
 app.listen(port, () => console.log(`server running on port ${port}`));

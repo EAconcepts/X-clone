@@ -70,10 +70,16 @@ const getPost = asyncHandler(async (req, res) => {
 // POST /api/post/
 // Private
 const getAllPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find().sort({ _id: -1 }).populate("user");
+  const page = parseInt(req.query.page);
+  const limit = parseInt(req.query.limit);
+  const posts = await Post.find()
+    .sort({ _id: -1 })
+    .populate("user")
+    .skip((page - 1) * limit)
+    .limit(limit);
   if (posts) {
     res.status(200).json({
-      message: "success",
+      message: `success \n Returning (${limit}) results page ${page}`,
       data: posts,
     });
   } else {
@@ -98,6 +104,9 @@ const deletePost = asyncHandler(async (req, res) => {
   }
 });
 
+// upload post images
+// POST /api/post/upload
+// Private
 const uploadImage = asyncHandler(async (req, res) => {
   const imgLinks = [];
   await uploadMultiple(imgLinks, req, res);
@@ -130,6 +139,9 @@ async function uploadMultiple(imgLinks, req, res) {
   }
 }
 
+// Like a post
+// POST /api/post/likes/:id
+// Private
 const handlePostLike = asyncHandler(async (req, res) => {
   const postId = req.params.id;
   console.log(req.user._id);
@@ -166,6 +178,8 @@ const handlePostLike = asyncHandler(async (req, res) => {
     }
   }
 });
+
+
 module.exports = {
   createPost,
   editPost,
