@@ -4,9 +4,9 @@ const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post("/create", protect, postComment);
-router.get("/:id", protect, getComment);
-router.delete("/delete/:id", deleteComment);
+router.post("/create/:id", protect, postComment);
+router.get("/:id", getComment);
+router.delete("/delete/:id", protect, deleteComment);
 router.get("/all/:postId", getAllComments);
 
 
