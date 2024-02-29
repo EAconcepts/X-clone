@@ -7,6 +7,7 @@ const {
   deletePost,
   uploadImage,
   handlePostLike,
+  retweetPost,
 } = require("../controllers/postController");
 const { protect } = require("../middleware/authMiddleware");
 const upload = require("../middleware/multer");
@@ -20,5 +21,6 @@ router.delete("/delete-post/:id", protect, deletePost);
 router.get("/", getAllPosts);
 router.post("/upload", protect, upload.array("image"), uploadImage);
 router.post("/likes/:id", protect, handlePostLike);
+router.post("/retweet/:id", protect, retweetPost)
 
 module.exports = router;

@@ -111,7 +111,7 @@ const uploadImage = asyncHandler(async (req, res) => {
   const imgLinks = [];
   await uploadMultiple(imgLinks, req, res);
 });
-
+// cloudinary image upload fn
 async function uploadMultiple(imgLinks, req, res) {
   for (let i = 0; i < req.files.length; i++) {
     await cloudinary.uploader.upload(req.files[i].path, (err, result) => {
@@ -179,6 +179,43 @@ const handlePostLike = asyncHandler(async (req, res) => {
   }
 });
 
+const retweetPost = asyncHandler(async (req, res) => {
+  const postId = req.params.id;
+  userId = req.user._id;
+
+  // Check if user has retweeted before
+  const hasRetweeted = await Post.findOne({ _id: postId, retweetedBy: userId });
+  if (hasRetweeted) {
+    const unRetweet = await Post.findOneAndUpdate(
+      { _id: postId, retweetedBy: userId },
+      { $pull: { retweetedBy: userId } },
+      { new: true }
+    );
+    if (unRetweet) {
+      res
+        .status(200)
+        .json({ message: "Tweet unretweeted successfully!", data: unRetweet });
+    } else {
+      res.status(400).json("Could not unretweet tweet!");
+    }
+  } else {
+    const postRetweeted = await Post.findOneAndUpdate(
+      { _id: postId },
+      { $push: { retweetedBy: userId } },
+      { new: true }
+    );
+    if (postRetweeted) {
+      res
+        .status(200)
+        .json({
+          message: "Tweet retweeted successfully!",
+          data: postRetweeted,
+        });
+    } else {
+      res.status(400).json("Something happenend!");
+    }
+  }
+});
 
 module.exports = {
   createPost,
@@ -188,4 +225,5 @@ module.exports = {
   deletePost,
   uploadImage,
   handlePostLike,
+  retweetPost,
 };
