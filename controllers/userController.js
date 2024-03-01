@@ -130,7 +130,7 @@ const verifyUser = asyncHandler(async (req, res) => {
 const sendVerificationEmail = async (user, res) => {
   const { _id, email } = user;
   console.log(_id, email);
-  const url = "https://www.x-clone-fe.vercel.app/auth/";
+  const url = "http://www.x-clone-fe.vercel.app/auth/";
   const uniqueString = uuid() + _id;
 
   const mailOptions = {
