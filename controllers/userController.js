@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { v4: uuid, v4 } = require("uuid");
 
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -47,27 +46,21 @@ const verifyUser = asyncHandler(async (req, res) => {
           // check if links have expired
           const { expiresAt } = result;
           const hashedUniqueString = result.uniqueId;
-          console.log(uniqueString)
+          console.log(uniqueString);
           if (expiresAt < Date.now()) {
             // when link has expired
             UserVerification.findOneAndDelete({ userId })
               .then((result) => {
-                res
-                  .status(400)
-                  .json({
-                    message:
-                      "Link expired! Request for a new verification link",
-                  });
+                res.status(400).json({
+                  message: "Link expired! Request for a new verification link",
+                });
               })
               .catch((error) => {
                 console.log("line 39", error);
-                res
-                  .status(400)
-                  .json({
-                    message:
-                      "An error occured when deleting expired user record",
-                    error,
-                  });
+                res.status(400).json({
+                  message: "An error occured when deleting expired user record",
+                  error,
+                });
               });
           }
           // If link is still valid
@@ -76,7 +69,10 @@ const verifyUser = asyncHandler(async (req, res) => {
             bcrypt
               .compare(uniqueString, hashedUniqueString)
               .then(async (result) => {
-                console.log("line 59", result);
+                console.log(
+                  "line 59",
+                  result + " " + uniqueString + " " + hashedUniqueString
+                );
                 // if Unique string corresponds,  update the verification status
                 if (result) {
                   const updateUser = await User.findOneAndUpdate(
@@ -105,12 +101,10 @@ const verifyUser = asyncHandler(async (req, res) => {
               })
               .catch((error) => {
                 console.log(error);
-                res
-                  .status(500)
-                  .json({
-                    message: "An error occured while comparing unique strings",
-                    error,
-                  });
+                res.status(500).json({
+                  message: "An error occured while comparing unique strings",
+                  error,
+                });
               });
           }
         })
