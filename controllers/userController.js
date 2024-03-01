@@ -130,7 +130,7 @@ const verifyUser = asyncHandler(async (req, res) => {
 const sendVerificationEmail = async (user, res) => {
   const { _id, email } = user;
   console.log(_id, email);
-  const url = "http://localhost:3000/auth/";
+  const url = "https://www.x-clone-fe.vercel.app/auth/";
   const uniqueString = uuid() + _id;
 
   const mailOptions = {
@@ -168,13 +168,13 @@ const sendVerificationEmail = async (user, res) => {
           })
           .catch((error) => {
             console.log(error);
-            res.json({
+            res.status(400).json({
               status: "FAILED",
               message: "Verification email failed",
             });
           });
       } else {
-        res.json({
+        res.status(400).json({
           status: "failed",
           message: "Couldn't send verification mail",
         });
@@ -182,7 +182,7 @@ const sendVerificationEmail = async (user, res) => {
     })
     .catch((error) => {
       console.log(error);
-      res.json({
+      res.status(400).json({
         status: "failed",
         message: "An error occured while hashing email data",
       });
