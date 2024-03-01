@@ -20,6 +20,10 @@ const mongoose = require("mongoose");
       type: String,
       required: [true, "Please enter a password"],
     },
+    isVerified:{
+      type: Boolean,
+      default: false
+    }
   },
   {
     timestamp: true,
