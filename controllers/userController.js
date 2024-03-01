@@ -47,6 +47,7 @@ const verifyUser = asyncHandler(async (req, res) => {
           // check if links have expired
           const { expiresAt } = result;
           const hashedUniqueString = result.uniqueId;
+          console.log(uniqueString)
           if (expiresAt < Date.now()) {
             // when link has expired
             UserVerification.findOneAndDelete({ userId })
@@ -139,9 +140,9 @@ const sendVerificationEmail = async (user, res) => {
     subject: "Verify your Email",
     html: `<p>
     Verify your email address to complete the signup and login into your account</p>
-    <p>This link <b>expires in 6 hours</b>. <p>Press </p> <a href=${
+    <p>This link <b>expires in 6 hours</b>. <p>Click  <a href=${
       url + "/verification/" + _id + "/" + uniqueString
-    }> here<a/> to proceed. </p>`,
+    } style='text-decoration: underline;'> here<a/> to proceed. </p>`,
   };
 
   // hash the uniqueString
