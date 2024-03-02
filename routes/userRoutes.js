@@ -6,6 +6,8 @@ const {
   getUser,
   getUsers,
   verifyUser,
+  forgotPassword,
+  resetPassword,
 } = require("../controllers/userController");
 const { protect } = require("../middleware/authMiddleware");
 
@@ -17,5 +19,8 @@ router.get("/users", protect, getAllUsers);
 router.get("/me", protect, getUser);
 router.get("/user/:id", protect, getUsers);
 router.post("/user/verify/:userId/:uniqueString", verifyUser);
+router.post("/forgot-password", forgotPassword)
+router.post("/password-reset/:id/:uniqueString", resetPassword)
+
 
 module.exports = router;

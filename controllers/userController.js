@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const { v4: uuid, v4 } = require("uuid");
+const PasswordReset = require("../models/passwordResetModel");
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -122,9 +123,11 @@ const verifyUser = asyncHandler(async (req, res) => {
     });
   }
 });
+
+// Send Verification mail
 const sendVerificationEmail = async (user, res) => {
   const { _id, email } = user;
-  console.log(_id, email);
+  // console.log(_id, email);
   const url = "https://x-clone-fe.vercel.app/auth/";
   const uniqueString = uuid() + _id;
 
@@ -231,11 +234,16 @@ const loginUser = asyncHandler(async (req, res) => {
   if ((!email, !password)) {
     res.status(400).json({ message: "Please fill all fields" });
   }
-  const user = await User.findOne({$or:[{ email }, {username: email}]});
+  const user = await User.findOne({ $or: [{ email }, { username: email }] });
 
   if (user && (await bcrypt.compare(password, user.password))) {
-    const hasVerified = await User.findOne({$or:[{ email, isVerified: true }, {username:email, isVerified:true}]});
-    console.log("hasVerified ",hasVerified)
+    const hasVerified = await User.findOne({
+      $or: [
+        { email, isVerified: true },
+        { username: email, isVerified: true },
+      ],
+    });
+    console.log("hasVerified ", hasVerified);
     if (hasVerified) {
       res.status(200).json({
         message: "success",
@@ -299,6 +307,158 @@ const getUsers = asyncHandler(async (req, res) => {
     res.status(400).json("User does not exist");
   }
 });
+
+// Forgot Password
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (email.trim() == "") {
+    res.status(400).json({ message: "Email or Username cannot be empty" });
+  }
+  const user = await User.findOne({
+    $or: [{ email: email }, { username: email }],
+  });
+  // const user = await User.findOne({ email });
+  if (user) {
+    console.log("USER - ", user);
+    sendResetLink(user, res);
+  } else {
+    res.status(400).json({ message: "User not found!" });
+  }
+});
+
+const sendResetLink = async ({ email, _id }, res) => {
+  const uniqueString = uuid() + _id;
+  const url = "https://x-clone-fe.vercel.app/auth/";
+
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: "X - Password Reset",
+    html: `<div>
+    <p>
+    You have requested to reset your password. Please follow the link attached to reset your password
+    </p>
+    <p>
+    This link <b>expires in 5 mins</b>. Click  <a href=${
+      url + "/forgot-password/" + _id + "/" + uniqueString
+    } style='text-decoration: underline; color:red;'> here<a/> to proceed. 
+    </p>
+    <br>
+    <p>If you have not requested for password reset, please ignore.</p>
+    </div>`,
+  };
+
+  // hash uniqueString
+  const salt = 10;
+  console.log(uniqueString);
+  const hashedUniqueString = await bcrypt.hash(uniqueString, salt);
+  if (hashedUniqueString) {
+    const currentTime = Date.now();
+    const createdAt = new Date(currentTime);
+
+    const willExpire = Date.now() + 300000;
+    const expiresAt = new Date(willExpire);
+
+    console.log(`createdAt - ${createdAt}. Expire at - ${expiresAt}`);
+    const resetData = await PasswordReset.create({
+      userId: _id,
+      uniqueString: hashedUniqueString,
+      createdAt: createdAt,
+      expiresAt: expiresAt,
+    });
+    if (resetData) {
+      transporter.sendMail(mailOptions).then((success) => {
+        console.log(success);
+
+        res.status(200).json({
+          message:
+            "Password reset instruction has been sent to your registered email.",
+        });
+      });
+    } else {
+      res.status(500).json({
+        message: "An error occured while creating password reset data",
+      });
+    }
+  } else {
+    res
+      .status(500)
+      .json({ message: "An error occured while hashing unique string." });
+  }
+};
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { uniqueString, id } = req.params;
+  const { password } = req.body;
+  console.log(password);
+  if (!password || password.trim() === "") {
+    res.status(400).json({ message: "Password cannot be empty" });
+  }
+  // check for reset data from db
+  const existingData = await PasswordReset.find({ userId: id });
+  const dataExists = existingData[existingData.length - 1];
+  if (dataExists) {
+    // check if link has not expired
+    if (dataExists.expiresAt < Date.now()) {
+      console.log(
+        "expires at - " +
+          dataExists.expiresAt +
+          " " +
+          "current time" +
+          " " +
+          Date.now()
+      );
+      res.status(400).json({ message: "Link expired. Please try again." });
+    } else {
+      // compare the uniqueStrings
+      bcrypt
+        .compare(dataExists.uniqueString, uniqueString)
+        .then(async (success) => {
+          console.log(success);
+          // hash new password
+          const salt = 10;
+          console.log(password);
+          bcrypt
+            .hash(password, salt)
+            .then(async (hashedPassword) => {
+              console.log(hashedPassword);
+
+              // Update password
+              const updateUserPassword = await User.findByIdAndUpdate(
+                id,
+                { password: hashedPassword },
+                { new: true }
+              );
+              if (updateUserPassword) {
+                console.log("updated user password ", updateUserPassword);
+                res.status(201).json({ message: "Password reset successful" });
+                console.log("after response");
+              } else {
+                res
+                  .status(400)
+                  .json(
+                    "An error occured while reseting password! Please try again"
+                  );
+              }
+            })
+            .catch((error) => {
+              console.log("hash error", error);
+              res
+                .status(500)
+                .json({ message: "An error occured while hashing password" });
+            });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  } else {
+    res
+      .status(400)
+      .json({ message: "Could not find password reset information" });
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -306,6 +466,8 @@ module.exports = {
   getUser,
   getUsers,
   verifyUser,
+  forgotPassword,
+  resetPassword,
 };
 
 const generateToken = (id) => {
