@@ -23,6 +23,9 @@ const mongoose = require("mongoose");
     isVerified:{
       type: Boolean,
       default: false
+    },
+    profileImage:{
+      type: String
     }
   },
   {

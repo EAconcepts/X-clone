@@ -19,5 +19,7 @@ app.use("/api/auth", require("./routes/userRoutes"));
 app.use("/api/post", require("./routes/postRoutes"));
 app.use("/api/comment", require("./routes/commentRoutes"));
 app.use('/api/notification', require('./routes/notificationRoutes'))
+app.use('/api/profile', require('./routes/profileRoute'))
+app.use('/api/file', require('./routes/fileRoute'))
 
 app.listen(port, () => console.log(`server running on port ${port}`));
