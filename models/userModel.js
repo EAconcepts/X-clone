@@ -24,7 +24,7 @@ const mongoose = require("mongoose");
       type: Boolean,
       default: false
     },
-    profileImage:{
+    avatar:{
       type: String
     }
   },

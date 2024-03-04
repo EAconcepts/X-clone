@@ -234,7 +234,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if ((!email, !password)) {
     res.status(400).json({ message: "Please fill all fields" });
   }
-  const user = await User.findOne({ $or: [{ email }, { username: email }] });
+  const user = await User.findOne({ $or: [{ email }, { username: email }] }, {password: 0});
 
   if (user && (await bcrypt.compare(password, user.password))) {
     const hasVerified = await User.findOne({
