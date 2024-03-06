@@ -1,6 +1,39 @@
 const mongoose = require("mongoose");
 
- const userSchema = mongoose.Schema(
+
+const profileSchema = mongoose.Schema({
+  status: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
+  birthDate: {
+    type: Date,
+  },
+  following: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
+  pinnedTweet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Post",
+  },
+  website: {
+    type: String,
+  },
+});
+
+
+const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
@@ -20,17 +53,24 @@ const mongoose = require("mongoose");
       type: String,
       required: [true, "Please enter a password"],
     },
-    isVerified:{
+    isVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
-    avatar:{
-      type: String
-    }
+    avatar: {
+      type: String,
+    },
+    profile: {
+      type: profileSchema
+      // type: Map,
+      // of: profileSchema,
+    },
   },
   {
     timestamp: true,
   }
 );
 
-module.exports = mongoose.model('User', userSchema)
+
+
+module.exports = mongoose.model("User", userSchema);
